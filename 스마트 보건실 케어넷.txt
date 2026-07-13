@@ -1,0 +1,1504 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>스마트 학교 보건실 소통 시스템</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    body {
+      font-family: 'Pretendard', sans-serif;
+    }
+    /* 스크롤바 숨기기 스타일 */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+
+  <div id="app" class="flex-grow flex flex-col">
+    <header id="main-header" class="hidden bg-white border-b border-slate-200 px-6 py-4 flex flex-col sm:flex-row justify-between items-center gap-4 sticky top-0 z-40 shadow-sm">
+      <div class="flex items-center gap-3">
+        <div class="bg-emerald-500 text-white p-2 rounded-xl shadow-md shadow-emerald-200">
+          <i data-lucide="heart-pulse" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <h1 class="text-xl font-extrabold text-slate-900 tracking-tight">스마트 보건실 케어넷</h1>
+          <p class="text-xs text-slate-500" id="header-sub-text">실시간 학내 보건 의료 연계 인프라</p>
+        </div>
+      </div>
+      
+      <div>
+        <button onclick="logoutRole()" class="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm rounded-xl transition-all">
+          <i data-lucide="log-out" class="w-4 h-4"></i>
+          처음 화면으로 (역할 종료)
+        </button>
+      </div>
+    </header>
+
+    <div id="status-banner" class="bg-yellow-50 border-b border-yellow-200 px-6 py-2 flex items-center justify-between text-xs text-yellow-800">
+      <div class="flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-yellow-400 animate-pulse" id="status-dot"></span>
+        <span id="status-text">서버에 연결 중입니다... 임시 데이터를 표시합니다.</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <button onclick="openConfigModal()" class="underline hover:text-yellow-900 font-semibold text-[11px] flex items-center gap-1">
+          <i data-lucide="settings" class="w-3.5 h-3.5"></i> DB 수동 설정
+        </button>
+        <button onclick="retryConnection()" class="underline hover:text-yellow-900 font-semibold">재시도</button>
+      </div>
+    </div>
+
+    <main class="flex-grow p-4 md:p-8 max-w-7xl w-full mx-auto flex flex-col justify-center">
+      
+      <section id="view-landing" class="space-y-12 py-8 max-w-4xl mx-auto w-full">
+        <div class="text-center space-y-4 relative">
+          <div class="absolute right-0 top-0">
+            <button onclick="openConfigModal()" class="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 font-bold text-xs rounded-xl shadow-sm transition-all">
+              <i data-lucide="database" class="w-3.5 h-3.5 text-emerald-500"></i>
+              실시간 DB 설정
+            </button>
+          </div>
+
+          <div class="inline-flex bg-emerald-100 text-emerald-800 p-3 rounded-2xl shadow-inner mb-2">
+            <i data-lucide="heart-pulse" class="w-10 h-10"></i>
+          </div>
+          <h2 class="text-4xl md:text-5xl font-extrabold text-slate-955 tracking-tight">스마트 보건실 케어넷</h2>
+          <p class="text-slate-500 text-base md:text-lg max-w-xl mx-auto leading-relaxed">
+            학생들의 빠른 치료와 신속한 학급 소통을 연결하는<br>우리 학교 맞춤형 실시간 응급/보건 안심 시스템입니다.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
+          <button onclick="requestAccess('kiosk')" class="group text-left bg-white border border-slate-200/80 rounded-3xl p-6 shadow-lg shadow-slate-100 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 flex flex-col justify-between h-72">
+            <div class="space-y-4">
+              <div class="bg-emerald-500 text-white p-4 rounded-2xl w-14 h-14 flex items-center justify-center shadow-lg shadow-emerald-200 group-hover:scale-110 transition-transform">
+                <i data-lucide="tablet" class="w-7 h-7"></i>
+              </div>
+              <div>
+                <h3 class="text-xl font-bold text-slate-955">보건실 입구 키오스크</h3>
+                <p class="text-slate-400 text-sm mt-1">보건실에 방문한 학생들이 용무와 아픈 증상을 간단하게 스마트 접수합니다.</p>
+              </div>
+            </div>
+            <div class="flex items-center text-emerald-600 font-bold text-sm gap-1 group-hover:gap-2 transition-all">
+              보안 인증 후 진료 접수 <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            </div>
+          </button>
+
+          <button onclick="requestAccess('nurse')" class="group text-left bg-white border border-slate-200/80 rounded-3xl p-6 shadow-lg shadow-slate-100 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 flex flex-col justify-between h-72">
+            <div class="space-y-4">
+              <div class="bg-indigo-600 text-white p-4 rounded-2xl w-14 h-14 flex items-center justify-center shadow-lg shadow-indigo-200 group-hover:scale-110 transition-transform">
+                <i data-lucide="user-cog" class="w-7 h-7"></i>
+              </div>
+              <div>
+                <h3 class="text-xl font-bold text-slate-955">보건교사용 화면</h3>
+                <p class="text-slate-400 text-sm mt-1">접수 현황을 실시간 확인하고 유의학생 관리, 즐겨찾기, 담임선생님 조치 공유를 수행합니다.</p>
+              </div>
+            </div>
+            <div class="flex items-center text-indigo-600 font-bold text-sm gap-1 group-hover:gap-2 transition-all">
+              보안 인증 후 관리창 진입 <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            </div>
+          </button>
+
+          <button onclick="requestAccess('teacher')" class="group text-left bg-white border border-slate-200/80 rounded-3xl p-6 shadow-lg shadow-slate-100 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 flex flex-col justify-between h-72">
+            <div class="space-y-4">
+              <div class="bg-violet-600 text-white p-4 rounded-2xl w-14 h-14 flex items-center justify-center shadow-lg shadow-violet-200 group-hover:scale-110 transition-transform">
+                <i data-lucide="graduation-cap" class="w-7 h-7"></i>
+              </div>
+              <div>
+                <h3 class="text-xl font-bold text-slate-955">담임 교사용 소통망</h3>
+                <p class="text-slate-400 text-sm mt-1">학급 학생들의 보건실 방문 이력과 보건교사 소견, 환우 학생 건강 특이사항을 공유받습니다.</p>
+              </div>
+            </div>
+            <div class="flex items-center text-violet-600 font-bold text-sm gap-1 group-hover:gap-2 transition-all">
+              보안 인증 후 학급 보드 진입 <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            </div>
+          </button>
+        </div>
+      </section>
+
+      <section id="view-kiosk" class="hidden space-y-6">
+        <div class="text-center py-6">
+          <h2 class="text-3xl font-extrabold text-slate-955">보건실에 오신 것을 환영합니다!</h2>
+          <p class="text-slate-500 mt-2 text-lg">키오스크에서 간단히 방문 용무를 등록해 주세요.</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          <div class="lg:col-span-8 bg-white rounded-3xl p-6 md:p-8 border border-slate-100 shadow-xl shadow-slate-100/70 space-y-6">
+            <h3 class="text-xl font-bold flex items-center gap-2 border-b pb-4 text-slate-900">
+              <i data-lucide="user-check" class="text-emerald-500 w-6 h-6"></i>
+              빠른 방문 접수하기
+            </h3>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div>
+                <label class="block text-sm font-semibold text-slate-600 mb-2">학년</label>
+                <select id="student-grade" onchange="onGradeChange('student-grade', 'student-class')" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-lg font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-400">
+                  <option value="1">1 학년</option>
+                  <option value="2">2 학년</option>
+                  <option value="3">3 학년</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-semibold text-slate-600 mb-2">반</label>
+                <select id="student-class" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-lg font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-400">
+                  </select>
+              </div>
+              <div>
+                <label class="block text-sm font-semibold text-slate-600 mb-2">번호</label>
+                <input id="student-number" type="number" min="1" max="40" placeholder="번호" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-lg font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-400 placeholder:text-slate-300">
+              </div>
+              <div>
+                <label class="block text-sm font-semibold text-slate-600 mb-2">이름</label>
+                <input id="student-name" type="text" placeholder="이름 입력" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-lg font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-400 placeholder:text-slate-300">
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-sm font-semibold text-slate-600 mb-3">방문 증상 및 용무 (중복 선택 가능)</label>
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-3" id="symptom-container">
+                </div>
+            </div>
+
+            <div>
+              <label class="block text-sm font-semibold text-slate-600 mb-2">구체적인 증상 또는 상세 내용 (선택)</label>
+              <textarea id="symptom-detail" rows="2" placeholder="자세한 통증 부위나 사유를 작성해 주시면 보건선생님이 빠르게 처치하는 데 큰 도움이 됩니다." class="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-base text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-400 placeholder:text-slate-300"></textarea>
+            </div>
+
+            <button onclick="submitReception()" class="w-full bg-emerald-500 hover:bg-emerald-600 active:transform active:scale-98 text-white font-extrabold text-xl py-5 rounded-2xl shadow-lg shadow-emerald-200 flex items-center justify-center gap-3 transition-all">
+              <i data-lucide="send" class="w-6 h-6 animate-pulse"></i>
+              보건실 실시간 접수하기
+            </button>
+          </div>
+
+          <div class="lg:col-span-4 space-y-6">
+            <div class="bg-gradient-to-br from-indigo-900 to-slate-900 text-white rounded-3xl p-6 shadow-xl space-y-4">
+              <div class="flex items-center gap-2">
+                <div class="bg-indigo-500/20 p-2 rounded-xl text-indigo-400">
+                  <i data-lucide="bell-off" class="w-6 h-6"></i>
+                </div>
+                <div>
+                  <h4 class="font-extrabold text-lg">선생님이 안 계신가요?</h4>
+                  <p class="text-xs text-indigo-300">교실로 바로 가야 한다면 남겨주세요.</p>
+                </div>
+              </div>
+              <p class="text-xs text-slate-300 leading-relaxed">
+                시간상 자리를 비워야 한다면 아래에 이름과 메모를 남기세요. 보건선생님 대시보드에 실시간 기록 보관됩니다.
+              </p>
+              
+              <div class="space-y-3 pt-2">
+                <input id="absent-student" type="text" placeholder="학년-반-번호 이름 (예: 1-2-15 홍길동)" class="w-full bg-white/10 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-400 placeholder:text-slate-400">
+                <textarea id="absent-message" rows="2" placeholder="전달할 메모 (예: 4교시 마치고 다시 올게요!)" class="w-full bg-white/10 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-400 placeholder:text-slate-400"></textarea>
+                <button onclick="submitAbsentMessage()" class="w-full bg-indigo-500 hover:bg-indigo-600 text-white font-bold text-sm py-3 rounded-xl flex items-center justify-center gap-2 transition-colors">
+                  <i data-lucide="pencil" class="w-4 h-4"></i>
+                  부재중 쪽지 남기기
+                </button>
+              </div>
+            </div>
+
+            <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-xl shadow-slate-100/70">
+              <div class="flex justify-between items-center mb-4">
+                <h4 class="font-bold text-slate-900 flex items-center gap-2">
+                  <i data-lucide="users" class="text-amber-500 w-5 h-5"></i>
+                  실시간 대기 현황판
+                </h4>
+                <span class="text-[10px] bg-slate-100 px-2.5 py-0.5 rounded-full text-slate-500">개인정보보호 적용</span>
+              </div>
+              <div id="kiosk-waiting-list" class="space-y-3 max-h-80 overflow-y-auto pr-1 no-scrollbar">
+                <p class="text-sm text-slate-400 py-6 text-center">대기 중인 학생이 없습니다.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="view-nurse" class="hidden space-y-6">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div class="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm flex items-center justify-between">
+            <div>
+              <p class="text-sm font-semibold text-slate-500">실시간 접수 대기</p>
+              <h4 class="text-2xl font-black text-slate-900 mt-1" id="stat-waiting-count">0명</h4>
+            </div>
+            <div class="bg-emerald-50 text-emerald-500 p-3 rounded-2xl">
+              <i data-lucide="users" class="w-6 h-6"></i>
+            </div>
+          </div>
+          <div class="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm flex items-center justify-between">
+            <div>
+              <p class="text-sm font-semibold text-slate-500">조치 완료 학생</p>
+              <h4 class="text-2xl font-black text-slate-900 mt-1" id="stat-complete-count">0명</h4>
+            </div>
+            <div class="bg-blue-50 text-blue-500 p-3 rounded-2xl">
+              <i data-lucide="check-circle" class="w-6 h-6"></i>
+            </div>
+          </div>
+          <div class="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm flex items-center justify-between">
+            <div>
+              <p class="text-sm font-semibold text-slate-500">미확인 부재중 쪽지</p>
+              <h4 class="text-2xl font-black text-slate-900 mt-1" id="stat-absent-count">0건</h4>
+            </div>
+            <div class="bg-indigo-50 text-indigo-500 p-3 rounded-2xl">
+              <i data-lucide="mail" class="w-6 h-6"></i>
+            </div>
+          </div>
+          <div class="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm flex items-center justify-between">
+            <div>
+              <p class="text-sm font-semibold text-slate-500">총 알림 전송</p>
+              <h4 class="text-2xl font-black text-slate-900 mt-1" id="stat-alert-count">0건</h4>
+            </div>
+            <div class="bg-rose-50 text-rose-500 p-3 rounded-2xl">
+              <i data-lucide="bell" class="w-6 h-6"></i>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          <div class="lg:col-span-8 space-y-6">
+            <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-lg shadow-slate-100/50">
+              <div class="flex justify-between items-center border-b pb-4 mb-4">
+                <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                  <i data-lucide="hourglass" class="text-emerald-500 w-5 h-5"></i>
+                  실시간 방문 및 접수 대기 리스트
+                </h3>
+                <span class="text-xs bg-slate-100 px-3 py-1 rounded-full text-slate-600 font-medium">실시간 동기화 완료</span>
+              </div>
+              
+              <div class="space-y-4 max-h-[600px] overflow-y-auto pr-1" id="nurse-reception-list">
+                <p class="text-center text-slate-400 py-12">현재 접수되거나 대기중인 학생이 없습니다.</p>
+              </div>
+            </div>
+
+            <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-lg shadow-slate-100/50 space-y-4">
+              <div class="flex justify-between items-center border-b pb-3">
+                <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                  <i data-lucide="clipboard-list" class="text-indigo-500 w-5 h-5"></i>
+                  학생 유의사항 및 즐겨찾기 등록
+                </h3>
+                <span class="text-xs text-slate-400">담임선생님 연동용 사전 자료</span>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                <div class="grid grid-cols-3 gap-1 col-span-1">
+                  <select id="profile-grade" onchange="onGradeChange('profile-grade', 'profile-class')" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm font-bold text-center">
+                    <option value="1">1학년</option>
+                    <option value="2">2학년</option>
+                    <option value="3">3학년</option>
+                  </select>
+                  <select id="profile-class" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm font-bold text-center">
+                    </select>
+                  <input id="profile-num" type="number" placeholder="번호" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm text-center font-bold">
+                </div>
+                <input id="profile-name" type="text" placeholder="학생명 (식별용)" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm font-semibold">
+                <input id="profile-notes" type="text" placeholder="건강 유의사항 (예: 땅콩 알레르기, 아스피린 금지)" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm md:col-span-2">
+              </div>
+              <div class="flex justify-between items-center pt-2">
+                <label class="flex items-center gap-1.5 text-xs font-semibold text-slate-600">
+                  <input id="profile-fav" type="checkbox" class="w-4 h-4 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500">
+                  자주 방문 학생 (즐겨찾기★) 지정
+                </label>
+                <button onclick="registerStudentProfile()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-4 py-2 rounded-lg flex items-center gap-1.5 transition-colors">
+                  <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                  건강 관리 대장 추가
+                </button>
+              </div>
+
+              <div class="border border-slate-100 rounded-xl overflow-hidden mt-4">
+                <table class="min-w-full divide-y divide-slate-100 text-xs">
+                  <thead class="bg-slate-50">
+                    <tr>
+                      <th class="px-4 py-2 text-left text-slate-500 font-bold">학적</th>
+                      <th class="px-4 py-2 text-left text-slate-500 font-bold">이름</th>
+                      <th class="px-4 py-2 text-left text-slate-500 font-bold">건강상태 및 유의사항</th>
+                      <th class="px-4 py-2 text-center text-slate-500 font-bold">즐겨찾기</th>
+                      <th class="px-4 py-2 text-center text-slate-500 font-bold">작업</th>
+                    </tr>
+                  </thead>
+                  <tbody id="nurse-profile-table-body" class="bg-white divide-y divide-slate-100">
+                    </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div class="lg:col-span-4 space-y-6">
+            <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-lg shadow-slate-100/50">
+              <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2 mb-4 border-b pb-4">
+                <i data-lucide="sticky-note" class="text-indigo-500 w-5 h-5"></i>
+                부재중 학생 기록판
+              </h3>
+              <div id="nurse-absent-list" class="space-y-3 max-h-[300px] overflow-y-auto pr-1">
+                <p class="text-center text-slate-400 py-6 text-sm">확인되지 않은 부재중 쪽지가 없습니다.</p>
+              </div>
+            </div>
+
+            <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-lg shadow-slate-100/50 space-y-4">
+              <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2 border-b pb-4">
+                <i data-lucide="megaphone" class="text-rose-500 w-5 h-5"></i>
+                학급 소통 전파하기
+              </h3>
+              <p class="text-xs text-slate-500 leading-relaxed">
+                학생 진료 소식이나 보건실 소식을 담임교사 화면에 알람 형태로 실시간 전달합니다.
+              </p>
+              
+              <div class="space-y-3">
+                <div class="grid grid-cols-2 gap-2">
+                  <select id="direct-grade" onchange="onGradeChange('direct-grade', 'direct-class')" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm">
+                    <option value="1">1 학년</option>
+                    <option value="2">2 학년</option>
+                    <option value="3">3 학년</option>
+                  </select>
+                  <select id="direct-class" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm">
+                    </select>
+                </div>
+                <input id="direct-student" type="text" placeholder="대상 학생명" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-sm">
+                <input id="direct-action" type="text" placeholder="전달할 내용 (예: 투약 후 교실 복귀함)" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-sm">
+                <button onclick="sendDirectNotification()" class="w-full bg-rose-500 hover:bg-rose-600 text-white font-bold text-sm py-3 rounded-xl flex items-center justify-center gap-2 transition-colors">
+                  <i data-lucide="send" class="w-4 h-4"></i>
+                  담임 통신망에 전송
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="view-teacher" class="hidden space-y-6">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h2 class="text-2xl font-black text-slate-900 flex items-center gap-2">
+              <span class="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-base font-bold" id="teacher-view-title">3-2 반 담임 교사</span>
+              실시간 학급 학생 보건 관리
+            </h2>
+            <p class="text-slate-500 mt-1">우리 반 학생들의 보건실 이용 기록과 조치 사항이 실시간으로 동기화됩니다.</p>
+          </div>
+          
+          <div class="flex items-center gap-2 bg-white px-4 py-2 rounded-2xl border border-slate-200 shadow-sm">
+            <span class="text-xs font-semibold text-slate-500">소속 관리 학급:</span>
+            <select id="teacher-grade-select" onchange="onTeacherGradeChange()" class="bg-transparent font-bold text-slate-800 focus:outline-none text-sm">
+              <option value="1">1학년</option>
+              <option value="2">2학년</option>
+              <option value="3" selected>3학년</option>
+            </select>
+            <select id="teacher-class-select" onchange="changeTeacherClass()" class="bg-transparent font-bold text-slate-800 focus:outline-none text-sm">
+              </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          <div class="lg:col-span-8 bg-white rounded-3xl p-6 border border-slate-100 shadow-lg shadow-slate-100/50 space-y-6">
+            <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2 border-b pb-4">
+              <i data-lucide="activity" class="text-emerald-500 w-5 h-5"></i>
+              실시간 보건실 발송 피드 (유의사항 및 연동 사항 표출)
+            </h3>
+            
+            <div id="teacher-feed-container" class="space-y-4 max-h-[500px] overflow-y-auto pr-1">
+              <div class="text-center py-12 text-slate-400">학급 소통망에 전송된 새로운 보건 알람이 없습니다.</div>
+            </div>
+          </div>
+
+          <div class="lg:col-span-4 space-y-6">
+            <div class="bg-gradient-to-br from-emerald-600 to-teal-700 text-white rounded-3xl p-6 shadow-xl space-y-3">
+              <h4 class="font-bold text-emerald-100 text-sm">금일 우리 학급 보건 관리 요약</h4>
+              <div class="flex items-baseline gap-2">
+                <span class="text-4xl font-extrabold" id="teacher-class-visit-count">0</span>
+                <span class="text-sm text-emerald-200">회 누적 방문</span>
+              </div>
+              <p class="text-xs text-emerald-100/80 leading-relaxed">
+                보건 교사 대장에 등록된 우리 반 고위험군/유의학생 명단을 조회하고, 실시간 안전 정보를 이중 통제할 수 있습니다.
+              </p>
+            </div>
+
+            <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-lg shadow-slate-100/50 space-y-4">
+              <h3 class="text-base font-bold text-slate-900 flex items-center gap-2 border-b pb-3">
+                <i data-lucide="send" class="text-slate-700 w-4 h-4"></i>
+                보건선생님께 전달사항 메모
+              </h3>
+              <p class="text-xs text-slate-500 leading-relaxed">
+                투약 지침 전달 등 환우 학생을 관리하는 데 필요한 내용을 전달하세요.
+              </p>
+              
+              <div class="space-y-3">
+                <input id="teacher-req-student" type="text" placeholder="학생명" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-xs">
+                <textarea id="teacher-req-message" rows="3" placeholder="예: 오늘 기침이 잦은데 보건실 오면 마스크 씌워주시고 지켜봐 주세요." class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-xs"></textarea>
+                <button onclick="sendTeacherRequest()" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs py-3 rounded-xl flex items-center justify-center gap-1.5 transition-colors">
+                  <i data-lucide="check" class="w-4 h-4"></i>
+                  보건실에 메모 남기기
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <div id="password-modal" class="fixed inset-0 bg-slate-950/40 backdrop-blur-sm flex items-center justify-center z-50 opacity-0 pointer-events-none transition-opacity duration-300">
+      <div class="bg-white rounded-3xl p-6 max-w-sm w-full mx-4 shadow-2xl transform scale-95 transition-transform duration-300 space-y-4 text-center">
+        <div class="w-16 h-16 rounded-full mx-auto flex items-center justify-center text-indigo-600 bg-indigo-50">
+          <i data-lucide="shield-alert" class="w-8 h-8"></i>
+        </div>
+        <div class="space-y-2">
+          <h3 id="password-modal-title" class="text-xl font-bold text-slate-900">사용자 권한 검증</h3>
+          <p id="password-modal-desc" class="text-xs text-slate-400">지정된 4자리 권한 비밀번호를 입력해주세요.</p>
+        </div>
+        <div class="space-y-3">
+          <input id="role-password" type="password" maxlength="4" placeholder="••••" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-2xl tracking-widest text-center font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-400">
+          <div class="grid grid-cols-2 gap-2">
+            <button onclick="closePasswordModal()" class="py-3 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold rounded-xl text-sm transition-all">
+              취소
+            </button>
+            <button onclick="validatePassword()" class="py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-sm transition-all">
+              보안 인증 통과
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="db-config-modal" class="fixed inset-0 bg-slate-950/40 backdrop-blur-sm flex items-center justify-center z-50 opacity-0 pointer-events-none transition-opacity duration-300">
+      <div class="bg-white rounded-3xl p-6 max-w-md w-full mx-4 shadow-2xl transform scale-95 transition-transform duration-300 space-y-4">
+        <div class="flex items-center gap-2 border-b pb-3">
+          <i data-lucide="database" class="w-6 h-6 text-emerald-500"></i>
+          <h3 class="text-lg font-bold text-slate-900">실시간 데이터베이스(Firebase) 설정</h3>
+        </div>
+        <p class="text-xs text-slate-500 leading-relaxed">
+          웹 브라우저에서 직접 다운로드받은 파일을 열었을 경우, 아래에 본인 소유의 Firebase Web SDK Config 객체(JSON 형식)를 입력하면 기기간 실시간 공유가 가능해집니다.
+        </p>
+        <div class="space-y-3">
+          <label class="block text-xs font-bold text-slate-600">Firebase Config JSON 데이터</label>
+          <textarea id="db-config-json" rows="8" placeholder='{
+  "apiKey": "AIzaSy...",
+  "authDomain": "...",
+  "projectId": "...",
+  "storageBucket": "...",
+  "messagingSenderId": "...",
+  "appId": "..."
+}' class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs font-mono text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-400"></textarea>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <button onclick="closeConfigModal()" class="py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold rounded-xl text-xs transition-all">
+            취소
+          </button>
+          <button onclick="saveCustomDBConfig()" class="py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition-all">
+            설정값 저장 및 연동
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div id="alert-modal" class="fixed inset-0 bg-slate-950/40 backdrop-blur-sm flex items-center justify-center z-50 opacity-0 pointer-events-none transition-opacity duration-300">
+      <div class="bg-white rounded-3xl p-6 max-w-sm w-full mx-4 shadow-2xl transform scale-95 transition-transform duration-300 space-y-4 text-center">
+        <div id="modal-icon-container" class="w-16 h-16 rounded-full mx-auto flex items-center justify-center text-emerald-500 bg-emerald-50">
+          <i data-lucide="check-circle" class="w-8 h-8"></i>
+        </div>
+        <div class="space-y-2">
+          <h3 id="modal-title" class="text-xl font-bold text-slate-900">처리되었습니다</h3>
+          <p id="modal-desc" class="text-sm text-slate-500">정상적으로 보건실 접수가 완료되었습니다.</p>
+        </div>
+        <button onclick="closeModal()" class="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl transition-all">
+          확인
+        </button>
+      </div>
+    </div>
+
+    <footer class="bg-slate-900 text-slate-400 py-6 px-6 text-center text-xs mt-12 border-t border-slate-800">
+      <p>© 2026 스마트 보건실 케어넷 (Smart Health-Care System). All rights reserved.</p>
+      <p class="mt-1 text-slate-500">본 대학교 및 산학협력 프로젝트용 웹애플리케이션</p>
+    </footer>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+  <script>
+    // ----------------------------------------------------
+    // 1. 상태관리 및 앱 설정
+    // ----------------------------------------------------
+    let db;
+    let auth;
+    let user = null;
+    let appState = {
+      role: 'landing', // 'landing', 'kiosk', 'nurse', 'teacher'
+      selectedSymptoms: [],
+      teacherGrade: '3',
+      teacherClass: '2',
+      isConnected: false,
+      targetPendingRole: null
+    };
+
+    // 역할 진입 비밀번호 정의
+    const ACCESS_PASSWORDS = {
+      kiosk: '1715',
+      nurse: '2349',
+      teacher: '0349'
+    };
+
+    // 학년별 학급 최대 제한 개수 정의
+    const GRADE_CLASS_LIMITS = {
+      '1': 13,
+      '2': 11,
+      '3': 12
+    };
+
+    // 로컬 예비 저장소
+    let localData = {
+      receptions: [],
+      absents: [],
+      alerts: [],
+      studentProfiles: []
+    };
+
+    // 증상 목록
+    const SYMPTOMS = [
+      { id: 'cough', label: '감기 / 기침', icon: 'wind', color: 'bg-blue-50 text-blue-600 border-blue-200' },
+      { id: 'headache', label: '두통 / 발열', icon: 'zap', color: 'bg-red-50 text-red-600 border-red-200' },
+      { id: 'period', label: '생리통', icon: 'heart', color: 'bg-rose-50 text-rose-600 border-rose-200' },
+      { id: 'stomach', label: '복통 / 소화불량', icon: 'activity', color: 'bg-amber-50 text-amber-600 border-amber-200' },
+      { id: 'wound', label: '상처 / 화상', icon: 'shield-alert', color: 'bg-orange-50 text-orange-600 border-orange-200' },
+      { id: 'eye', label: '안과 증상', icon: 'eye', color: 'bg-sky-50 text-sky-600 border-sky-200' },
+      { id: 'etc', label: '기타 용무', icon: 'message-circle', color: 'bg-purple-50 text-purple-600 border-purple-200' }
+    ];
+
+    // ----------------------------------------------------
+    // 2. 동적 학급(반) 선택 드롭다운 갱신 함수
+    // ----------------------------------------------------
+    function updateClassDropdown(gradeVal, dropdownId) {
+      const dropdown = document.getElementById(dropdownId);
+      if (!dropdown) return;
+
+      dropdown.innerHTML = '';
+      const maxClasses = GRADE_CLASS_LIMITS[gradeVal] || 10;
+      
+      for (let i = 1; i <= maxClasses; i++) {
+        const opt = document.createElement('option');
+        opt.value = String(i);
+        opt.innerText = `${i} 반`;
+        dropdown.appendChild(opt);
+      }
+    }
+
+    function onGradeChange(gradeSelectId, classSelectId) {
+      const gradeVal = document.getElementById(gradeSelectId).value;
+      updateClassDropdown(gradeVal, classSelectId);
+    }
+
+    function onTeacherGradeChange() {
+      const gradeVal = document.getElementById('teacher-grade-select').value;
+      updateClassDropdown(gradeVal, 'teacher-class-select');
+      changeTeacherClass();
+    }
+
+    function initAllDropdowns() {
+      onGradeChange('student-grade', 'student-class');
+      onGradeChange('profile-grade', 'profile-class');
+      onGradeChange('direct-grade', 'direct-class');
+      const tGrade = document.getElementById('teacher-grade-select').value;
+      updateClassDropdown(tGrade, 'teacher-class-select');
+    }
+
+    // ----------------------------------------------------
+    // 3. 파이어베이스 초기화 및 수동 연동 복원 장치
+    // ----------------------------------------------------
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'school-nurse-kiosk-01';
+    
+    function initFirebase() {
+      let customConfigStr = localStorage.getItem('school_net_firebase_config');
+      let config = null;
+
+      if (customConfigStr) {
+        try {
+          config = JSON.parse(customConfigStr);
+        } catch (err) {
+          localStorage.removeItem('school_net_firebase_config');
+        }
+      }
+
+      if (!config && typeof __firebase_config !== 'undefined' && __firebase_config) {
+        try {
+          config = JSON.parse(__firebase_config);
+        } catch(e) {}
+      }
+
+      if (config) {
+        try {
+          if (firebase.apps.length === 0) {
+            firebase.initializeApp(config);
+          }
+          db = firebase.firestore();
+          auth = firebase.auth();
+          
+          const initAuth = async () => {
+            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+              await auth.signInWithCustomToken(__initial_auth_token);
+            } else {
+              await auth.signInAnonymously();
+            }
+          };
+          
+          initAuth().then(() => {
+            auth.onAuthStateChanged((usr) => {
+              user = usr;
+              if (user) {
+                appState.isConnected = true;
+                updateStatusBanner('서버와 실시간 무선 DB 연결이 완료되었습니다.', 'success');
+                startRealtimeListeners();
+              }
+            });
+          }).catch(err => {
+            console.error("Auth Error:", err);
+            setupLocalMocking();
+          });
+
+        } catch (e) {
+          console.error("Firebase Init Failed:", e);
+          setupLocalMocking();
+        }
+      } else {
+        setupLocalMocking();
+      }
+    }
+
+    function openConfigModal() {
+      const modal = document.getElementById('db-config-modal');
+      const currentConfig = localStorage.getItem('school_net_firebase_config') || '';
+      document.getElementById('db-config-json').value = currentConfig;
+
+      modal.classList.remove('opacity-0', 'pointer-events-none');
+      modal.querySelector('div').classList.remove('scale-95');
+    }
+
+    function closeConfigModal() {
+      const modal = document.getElementById('db-config-modal');
+      modal.classList.add('opacity-0', 'pointer-events-none');
+      modal.querySelector('div').classList.add('scale-95');
+    }
+
+    function saveCustomDBConfig() {
+      const val = document.getElementById('db-config-json').value.trim();
+      if (!val) {
+        localStorage.removeItem('school_net_firebase_config');
+        showModal('check-circle', '로컬 테스트 복원', '수동 설정값을 비워 기존 임시 로컬 모드로 복원됩니다.', 'success');
+        closeConfigModal();
+        setTimeout(() => location.reload(), 1000);
+        return;
+      }
+
+      try {
+        const testParse = JSON.parse(val);
+        if (!testParse.apiKey || !testParse.projectId) {
+          throw new Error();
+        }
+        localStorage.setItem('school_net_firebase_config', val);
+        showModal('check-circle', '설정 완료', '입력하신 Firebase 서버 연동 설정이 완료되었습니다. 앱이 재로드됩니다.', 'success');
+        closeConfigModal();
+        setTimeout(() => location.reload(), 1500);
+      } catch (err) {
+        showModal('alert-circle', '형식 이상', '올바른 JSON 구성(apiKey, projectId 등 포함)인지 다시 확인하세요.', 'error');
+      }
+    }
+
+    function setupLocalMocking() {
+      appState.isConnected = false;
+      updateStatusBanner('오프라인 임시 모드로 가동 중입니다. (기기 동기화는 웹사이트 배정 접속 시 자동 활성화)', 'warning');
+      
+      localData.receptions = [
+        { id: 'rec-1', grade: '3', class: '2', number: '14', name: '김철수', symptoms: ['두통 / 발열'], detail: '수업 도중 머리가 너무 뜨겁고 지끈거림', status: '대기', timestamp: new Date(Date.now() - 10 * 60000) },
+        { id: 'rec-2', grade: '1', class: '3', number: '5', name: '박민지', symptoms: ['생리통'], detail: '약 먹고 안정을 취하고 싶음', status: '대기', timestamp: new Date(Date.now() - 5 * 60000) },
+        { id: 'rec-3', grade: '3', class: '2', number: '21', name: '이민수', symptoms: ['상처 / 화상'], detail: '체육활동 중 무릎 심한 찰과상', status: '치료완료', timestamp: new Date(Date.now() - 15 * 60000) }
+      ];
+      localData.absents = [
+        { id: 'abs-1', student: '2학년 1반 25번 최유진', message: '보건실 자리에 선생님 안 계셔서 교실로 먼저 돌아갑니다!', timestamp: new Date() }
+      ];
+      localData.alerts = [
+        { id: 'alt-1', grade: '3', class: '2', student: '이민수', action: '[치료완료] 보건실 방문 (상처 / 화상) 소독 및 소독 거즈 밀착 후 복귀 조치.', timestamp: new Date() }
+      ];
+      localData.studentProfiles = [
+        { id: 'prof-1', grade: '3', class: '2', number: '14', name: '김철수', notes: '천식 진단 보유, 흡입기 필요 시 지원', isFavorite: true },
+        { id: 'prof-2', grade: '1', class: '3', number: '5', name: '박민지', notes: '페니실린 계열 항생제 유해 알레르기 있음', isFavorite: false }
+      ];
+      
+      renderAllViews();
+    }
+
+    // ----------------------------------------------------
+    // 4. 실시간 리스너 연결 (Firestore)
+    // ----------------------------------------------------
+    function startRealtimeListeners() {
+      if (!user) return;
+
+      const docBase = db.collection('artifacts').doc(appId).collection('public').doc('data');
+      const receptionColl = docBase.collection('receptions');
+      const absentColl = docBase.collection('absents');
+      const alertColl = docBase.collection('alerts');
+      const profileColl = docBase.collection('student_profiles');
+
+      receptionColl.onSnapshot((snapshot) => {
+        const reps = [];
+        snapshot.forEach((doc) => {
+          const d = doc.data();
+          reps.push({ id: doc.id, ...d, timestamp: d.timestamp?.toDate() || new Date() });
+        });
+        localData.receptions = reps.sort((a, b) => b.timestamp - a.timestamp);
+        renderAllViews();
+      }, (err) => { console.error("Firestore Listen Error:", err); });
+
+      absentColl.onSnapshot((snapshot) => {
+        const abss = [];
+        snapshot.forEach((doc) => {
+          const d = doc.data();
+          abss.push({ id: doc.id, ...d, timestamp: d.timestamp?.toDate() || new Date() });
+        });
+        localData.absents = abss.sort((a, b) => b.timestamp - a.timestamp);
+        renderAllViews();
+      }, (err) => {});
+
+      alertColl.onSnapshot((snapshot) => {
+        const alts = [];
+        snapshot.forEach((doc) => {
+          const d = doc.data();
+          alts.push({ id: doc.id, ...d, timestamp: d.timestamp?.toDate() || new Date() });
+        });
+        localData.alerts = alts.sort((a, b) => b.timestamp - a.timestamp);
+        renderAllViews();
+      }, (err) => {});
+
+      profileColl.onSnapshot((snapshot) => {
+        const profs = [];
+        snapshot.forEach((doc) => {
+          const d = doc.data();
+          profs.push({ id: doc.id, ...d });
+        });
+        localData.studentProfiles = profs;
+        renderAllViews();
+      }, (err) => {});
+    }
+
+    // ----------------------------------------------------
+    // 5. 보안 검증 비밀번호 기능
+    // ----------------------------------------------------
+    function requestAccess(role) {
+      appState.targetPendingRole = role;
+      document.getElementById('role-password').value = '';
+      
+      const modal = document.getElementById('password-modal');
+      const modalTitle = document.getElementById('password-modal-title');
+      const modalDesc = document.getElementById('password-modal-desc');
+
+      let korRole = "";
+      if (role === 'kiosk') korRole = "보건실 입구 키오스크";
+      if (role === 'nurse') korRole = "보건선생님 실시간 대시보드";
+      if (role === 'teacher') korRole = "담임교사 실시간 소통망";
+
+      modalTitle.innerText = `${korRole} 접근 통제`;
+      modalDesc.innerText = `권한이 부여된 사용자만 진입할 수 있습니다. 비밀번호를 입력해주세요.`;
+
+      modal.classList.remove('opacity-0', 'pointer-events-none');
+      modal.querySelector('div').classList.remove('scale-95');
+      document.getElementById('role-password').focus();
+    }
+
+    function validatePassword() {
+      const inputPass = document.getElementById('role-password').value;
+      const target = appState.targetPendingRole;
+
+      if (!target) return;
+
+      if (inputPass === ACCESS_PASSWORDS[target]) {
+        closePasswordModal();
+        switchRole(target);
+      } else {
+        showModal('shield-alert', '비밀번호가 다릅니다', '지정된 접근 권한 비밀번호를 다시 확인한 뒤 입력해주십시오.', 'error');
+        document.getElementById('role-password').value = '';
+      }
+    }
+
+    function closePasswordModal() {
+      const modal = document.getElementById('password-modal');
+      modal.classList.add('opacity-0', 'pointer-events-none');
+      modal.querySelector('div').classList.add('scale-95');
+      appState.targetPendingRole = null;
+    }
+
+    function logoutRole() {
+      switchRole('landing');
+    }
+
+    // ----------------------------------------------------
+    // 6. 개인정보 마스킹 처리 유틸리티
+    // ----------------------------------------------------
+    function maskStudentName(name) {
+      if (!name) return '';
+      const trimName = name.trim();
+      if (trimName.length <= 1) return trimName;
+      if (trimName.length === 2) {
+        return trimName[0] + '*';
+      }
+      return trimName[0] + '*'.repeat(trimName.length - 2) + trimName[trimName.length - 1];
+    }
+
+    // ----------------------------------------------------
+    // 7. 데이터 쓰기 / 트랜잭션 함수
+    // ----------------------------------------------------
+    async function submitReception() {
+      const grade = document.getElementById('student-grade').value;
+      const cls = document.getElementById('student-class').value;
+      const num = document.getElementById('student-number').value.trim();
+      const name = document.getElementById('student-name').value.trim();
+      const detail = document.getElementById('symptom-detail').value.trim();
+
+      if (!num || isNaN(num)) {
+        showModal('alert-circle', '번호 입력 오류', '정확한 출석 번호를 정수로 입력해 주세요.', 'error');
+        return;
+      }
+      if (!name) {
+        showModal('alert-circle', '이름을 입력해주세요', '접수하는 학생의 이름을 입력해 주세요.', 'error');
+        return;
+      }
+      if (appState.selectedSymptoms.length === 0) {
+        showModal('alert-circle', '방문 목적 선택 누락', '해당하는 아픈 부위나 방문 사유를 선택해 주세요.', 'error');
+        return;
+      }
+
+      const postData = {
+        grade: grade,
+        class: cls,
+        number: num,
+        name: name,
+        symptoms: appState.selectedSymptoms,
+        detail: detail,
+        status: '대기',
+        timestamp: new Date()
+      };
+
+      if (appState.isConnected && user) {
+        try {
+          await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('receptions').add(postData);
+        } catch (e) {
+          console.error("Submit Error:", e);
+        }
+      } else {
+        postData.id = 'local-rec-' + Date.now();
+        localData.receptions.unshift(postData);
+        renderAllViews();
+      }
+
+      document.getElementById('student-name').value = '';
+      document.getElementById('student-number').value = '';
+      document.getElementById('symptom-detail').value = '';
+      appState.selectedSymptoms = [];
+      renderSymptomCheckboxes();
+      
+      showModal('check-circle', '정상 접수되었습니다', '보건실 안 대기 구역에서 안정을 취하며 선생님의 안내를 기다리세요.', 'success');
+    }
+
+    async function submitAbsentMessage() {
+      const studentInput = document.getElementById('absent-student').value.trim();
+      const messageInput = document.getElementById('absent-message').value.trim();
+
+      if (!studentInput || !messageInput) {
+        showModal('mail-warning', '정보 누락', '학년 반 및 이름과 전달할 메세지를 입력해주세요.', 'error');
+        return;
+      }
+
+      const postData = {
+        student: studentInput,
+        message: messageInput,
+        timestamp: new Date()
+      };
+
+      if (appState.isConnected && user) {
+        try {
+          await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('absents').add(postData);
+        } catch (e) {
+          console.error(e);
+        }
+      } else {
+        postData.id = 'local-abs-' + Date.now();
+        localData.absents.unshift(postData);
+        renderAllViews();
+      }
+
+      document.getElementById('absent-student').value = '';
+      document.getElementById('absent-message').value = '';
+      showModal('mail', '부재중 쪽지 전달 완료', '선생님의 보건실 전용 기록판에 안전하게 전달되었습니다.', 'success');
+    }
+
+    async function registerStudentProfile() {
+      const grade = document.getElementById('profile-grade').value.trim();
+      const cls = document.getElementById('profile-class').value.trim();
+      const num = document.getElementById('profile-num').value.trim();
+      const name = document.getElementById('profile-name').value.trim();
+      const notes = document.getElementById('profile-notes').value.trim();
+      const isFav = document.getElementById('profile-fav').checked;
+
+      if (!grade || !cls || !num || !name || !notes) {
+        showModal('alert-circle', '대장 입력 오류', '학년, 반, 번호, 성함, 건강 유의사항을 모두 기입해주십시오.', 'error');
+        return;
+      }
+
+      const postData = {
+        grade: String(grade),
+        class: String(cls),
+        number: String(num),
+        name: name,
+        notes: notes,
+        isFavorite: isFav
+      };
+
+      if (appState.isConnected && user) {
+        try {
+          await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('student_profiles').add(postData);
+        } catch (e) {}
+      } else {
+        postData.id = 'local-prof-' + Date.now();
+        localData.studentProfiles.unshift(postData);
+        renderAllViews();
+      }
+
+      document.getElementById('profile-num').value = '';
+      document.getElementById('profile-name').value = '';
+      document.getElementById('profile-notes').value = '';
+      document.getElementById('profile-fav').checked = false;
+
+      showModal('clipboard-check', '건강대장 추가 완료', `${name} 학생의 특이 소견 및 유의사항이 시스템에 등재되었습니다.`, 'success');
+    }
+
+    async function deleteStudentProfile(id) {
+      if (appState.isConnected && user) {
+        try {
+          await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('student_profiles').doc(id).delete();
+        } catch (e) {}
+      } else {
+        localData.studentProfiles = localData.studentProfiles.filter(p => p.id !== id);
+        renderAllViews();
+      }
+    }
+
+    async function sendDirectNotification() {
+      const grade = document.getElementById('direct-grade').value;
+      const cls = document.getElementById('direct-class').value;
+      const student = document.getElementById('direct-student').value.trim();
+      const action = document.getElementById('direct-action').value.trim();
+
+      if (!student || !action) {
+        showModal('megaphone', '정보 입력 누락', '학생 이름과 조치내역을 기재해주세요.', 'error');
+        return;
+      }
+
+      const postData = {
+        grade: grade,
+        class: cls,
+        student: student,
+        action: action,
+        timestamp: new Date()
+      };
+
+      if (appState.isConnected && user) {
+        try {
+          await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('alerts').add(postData);
+        } catch (e) {}
+      } else {
+        postData.id = 'local-alt-' + Date.now();
+        localData.alerts.unshift(postData);
+        renderAllViews();
+      }
+
+      document.getElementById('direct-student').value = '';
+      document.getElementById('direct-action').value = '';
+      showModal('send', '전파 완료', `${grade}학년 ${cls}반 담임 통신망에 실시간 통보가 완료되었습니다.`, 'success');
+    }
+
+    async function sendTeacherRequest() {
+      const student = document.getElementById('teacher-req-student').value.trim();
+      const msg = document.getElementById('teacher-req-message').value.trim();
+
+      if (!student || !msg) {
+        showModal('alert-circle', '내용 입력 필요', '학생 이름과 전달할 메세지를 입력해주세요.', 'error');
+        return;
+      }
+
+      const postData = {
+        grade: appState.teacherGrade,
+        class: appState.teacherClass,
+        student: student,
+        action: `[담임 요청] ${msg}`,
+        timestamp: new Date()
+      };
+
+      if (appState.isConnected && user) {
+        try {
+          await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('alerts').add(postData);
+        } catch (e) {}
+      } else {
+        postData.id = 'local-alt-' + Date.now();
+        localData.alerts.unshift(postData);
+        renderAllViews();
+      }
+
+      document.getElementById('teacher-req-student').value = '';
+      document.getElementById('teacher-req-message').value = '';
+      showModal('check', '요청 메모 전달 완료', '학급 요청 소식이 실시간으로 기록 보관되었습니다.', 'success');
+    }
+
+    // ----------------------------------------------------
+    // 8. 비즈니스 로직 / 상태 변경 함수
+    // ----------------------------------------------------
+    async function updateReceptionStatus(id, newStatus, itemData = null) {
+      if (appState.isConnected && user) {
+        try {
+          const docRef = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('receptions').doc(id);
+          if (newStatus === 'delete') {
+            await docRef.delete();
+          } else {
+            await docRef.update({ status: newStatus });
+          }
+        } catch (e) {}
+      } else {
+        if (newStatus === 'delete') {
+          localData.receptions = localData.receptions.filter(r => r.id !== id);
+        } else {
+          const item = localData.receptions.find(r => r.id === id);
+          if (item) item.status = newStatus;
+        }
+        renderAllViews();
+      }
+
+      if (newStatus === '치료완료' && itemData) {
+        sendAutoAlertToTeacher(itemData);
+      }
+    }
+
+    async function sendAutoAlertToTeacher(item) {
+      const postData = {
+        grade: item.grade,
+        class: item.class,
+        student: item.name,
+        action: `[치료완료] 보건실 방문 (${item.symptoms.join(', ')}) 치료 처치 완료 후 교실 복귀 처리되었습니다.`,
+        timestamp: new Date()
+      };
+
+      if (appState.isConnected && user) {
+        try {
+          await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('alerts').add(postData);
+        } catch (e) {}
+      } else {
+        postData.id = 'local-alt-' + Date.now();
+        localData.alerts.unshift(postData);
+        renderAllViews();
+      }
+    }
+
+    async function resolveAbsent(id) {
+      if (appState.isConnected && user) {
+        try {
+          await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('absents').doc(id).delete();
+        } catch (e) {}
+      } else {
+        localData.absents = localData.absents.filter(a => a.id !== id);
+        renderAllViews();
+      }
+    }
+
+    // ----------------------------------------------------
+    // 9. UI 렌더링 및 인터랙션 핸들링
+    // ----------------------------------------------------
+    function switchRole(role) {
+      appState.role = role;
+      
+      document.getElementById('view-landing').classList.add('hidden');
+      document.getElementById('view-kiosk').classList.add('hidden');
+      document.getElementById('view-nurse').classList.add('hidden');
+      document.getElementById('view-teacher').classList.add('hidden');
+      document.getElementById('main-header').classList.add('hidden');
+      
+      if (role === 'landing') {
+        document.getElementById('view-landing').classList.remove('hidden');
+      } else {
+        document.getElementById('main-header').classList.remove('hidden');
+        
+        const subText = document.getElementById('header-sub-text');
+        if (role === 'kiosk') {
+          document.getElementById('view-kiosk').classList.remove('hidden');
+          subText.innerText = "학생 방문 접수용 태블릿 키오스크";
+        } else if (role === 'nurse') {
+          document.getElementById('view-nurse').classList.remove('hidden');
+          subText.innerText = "보건선생님 실시간 대시보드";
+        } else if (role === 'teacher') {
+          document.getElementById('view-teacher').classList.remove('hidden');
+          subText.innerText = "담임교사 실시간 학급 안심망";
+        }
+      }
+
+      renderAllViews();
+    }
+
+    function renderSymptomCheckboxes() {
+      const container = document.getElementById('symptom-container');
+      container.innerHTML = '';
+
+      SYMPTOMS.forEach(sym => {
+        const isSelected = appState.selectedSymptoms.includes(sym.label);
+        const activeClass = isSelected 
+          ? 'ring-2 ring-emerald-500 border-emerald-500 bg-emerald-50 text-emerald-950 font-bold' 
+          : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300';
+
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = `p-4 border rounded-2xl flex flex-col items-center justify-center gap-2 text-center transition-all ${activeClass}`;
+        btn.innerHTML = `
+          <div class="p-2 rounded-xl bg-slate-100 ${isSelected ? 'bg-emerald-200/50' : ''}">
+            <i data-lucide="${sym.icon}" class="w-6 h-6 ${isSelected ? 'text-emerald-700' : 'text-slate-600'}"></i>
+          </div>
+          <span class="text-xs tracking-tight font-semibold">${sym.label}</span>
+        `;
+        btn.onclick = () => toggleSymptom(sym.label);
+        container.appendChild(btn);
+      });
+      lucide.createIcons();
+    }
+
+    function toggleSymptom(label) {
+      if (appState.selectedSymptoms.includes(label)) {
+        appState.selectedSymptoms = appState.selectedSymptoms.filter(item => item !== label);
+      } else {
+        appState.selectedSymptoms.push(label);
+      }
+      renderSymptomCheckboxes();
+    }
+
+    function changeTeacherClass() {
+      appState.teacherGrade = document.getElementById('teacher-grade-select').value;
+      appState.teacherClass = document.getElementById('teacher-class-select').value;
+      
+      const titleElem = document.getElementById('teacher-view-title');
+      titleElem.innerText = `${appState.teacherGrade}-${appState.teacherClass} 반 담임 교사`;
+      
+      renderAllViews();
+    }
+
+    // ----------------------------------------------------
+    // 10. 실시간 렌더링 오케스트레이터
+    // ----------------------------------------------------
+    function renderAllViews() {
+      if (appState.role === 'landing') return;
+
+      const waitingCount = localData.receptions.filter(r => r.status === '대기').length;
+      const completeCount = localData.receptions.filter(r => r.status === '치료완료').length;
+      const absentCount = localData.absents.length;
+      const alertCount = localData.alerts.length;
+
+      const statWaiting = document.getElementById('stat-waiting-count');
+      const statComplete = document.getElementById('stat-complete-count');
+      const statAbsent = document.getElementById('stat-absent-count');
+      const statAlert = document.getElementById('stat-alert-count');
+
+      if (statWaiting) statWaiting.innerText = `${waitingCount}명`;
+      if (statComplete) statComplete.innerText = `${completeCount}명`;
+      if (statAbsent) statAbsent.innerText = `${absentCount}건`;
+      if (statAlert) statAlert.innerText = `${alertCount}건`;
+
+      const kioskWaitContainer = document.getElementById('kiosk-waiting-list');
+      if (kioskWaitContainer) {
+        const curWaitingList = localData.receptions.filter(r => r.status === '대기');
+        if (curWaitingList.length === 0) {
+          kioskWaitContainer.innerHTML = `<p class="text-xs text-slate-400 py-6 text-center">대기 중인 학생이 없습니다.</p>`;
+        } else {
+          kioskWaitContainer.innerHTML = curWaitingList.map((item, index) => {
+            const queueNum = curWaitingList.length - index;
+            const maskedName = maskStudentName(item.name);
+            return `
+              <div class="flex items-center justify-between p-3 bg-slate-50 border border-slate-100 rounded-2xl shadow-sm">
+                <div class="flex items-center gap-2.5">
+                  <span class="text-xs font-black text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-xl">대기 ${queueNum}번</span>
+                  <div>
+                    <h5 class="text-sm font-bold text-slate-800">${item.grade}학년 ${item.class}반 ${maskedName}</h5>
+                    <p class="text-[10px] text-slate-400 mt-0.5">${item.symptoms.slice(0, 2).join(', ')}</p>
+                  </div>
+                </div>
+                <span class="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-1 rounded-full font-bold">진료 준비중</span>
+              </div>
+            `;
+          }).join('');
+        }
+      }
+
+      const nurseListContainer = document.getElementById('nurse-reception-list');
+      if (nurseListContainer) {
+        if (localData.receptions.length === 0) {
+          nurseListContainer.innerHTML = `<p class="text-center text-slate-400 py-12">현재 접수되거나 대기중인 학생이 없습니다.</p>`;
+        } else {
+          nurseListContainer.innerHTML = localData.receptions.map(item => {
+            const isWaiting = item.status === '대기';
+            const isCaring = item.status === '치료중';
+            
+            const matchedProfile = localData.studentProfiles.find(p => 
+              String(p.grade) === String(item.grade) && 
+              String(p.class) === String(item.class) && 
+              String(p.name) === String(item.name)
+            );
+            
+            const isFavorite = matchedProfile?.isFavorite || false;
+            const healthAlert = matchedProfile?.notes || '';
+
+            let cardBorder = 'border-slate-100';
+            let statusBadge = '';
+            if (isWaiting) {
+              cardBorder = 'border-l-4 border-l-emerald-500';
+              statusBadge = `<span class="bg-emerald-100 text-emerald-800 text-xs px-2.5 py-1 rounded-full font-bold">진료 대기</span>`;
+            } else if (isCaring) {
+              cardBorder = 'border-l-4 border-l-amber-500';
+              statusBadge = `<span class="bg-amber-100 text-amber-800 text-xs px-2.5 py-1 rounded-full font-bold">처치/휴식 중</span>`;
+            } else {
+              cardBorder = 'border-l-4 border-l-slate-300 opacity-60';
+              statusBadge = `<span class="bg-slate-100 text-slate-600 text-xs px-2.5 py-1 rounded-full font-semibold">처치 완료</span>`;
+            }
+
+            return `
+              <div class="bg-white border ${cardBorder} p-5 rounded-2xl shadow-sm space-y-4 hover:shadow-md transition-all">
+                <div class="flex justify-between items-start">
+                  <div>
+                    <div class="flex items-center gap-2">
+                      ${isFavorite ? `<span class="text-amber-500 text-xl font-bold" title="자주 방문 학생(즐겨찾기)">★</span>` : ''}
+                      <span class="text-lg font-black text-slate-900">${item.grade}학년 ${item.class}반 ${item.number}번 <span class="text-emerald-600">${item.name}</span></span>
+                      ${statusBadge}
+                    </div>
+                    <p class="text-xs text-slate-400 mt-1">${formatTime(item.timestamp)}</p>
+                  </div>
+                  
+                  <div class="flex items-center gap-1.5">
+                    ${isWaiting ? `
+                      <button onclick="updateReceptionStatus('${item.id}', '치료중')" class="text-xs bg-amber-500 hover:bg-amber-600 text-white font-bold px-3 py-2 rounded-lg flex items-center gap-1">
+                        <i data-lucide="play" class="w-3 h-3"></i> 치료 시작
+                      </button>
+                    ` : ''}
+                    ${isWaiting || isCaring ? `
+                      <button onclick='updateReceptionStatus(\"${item.id}\", \"치료완료\", ${JSON.stringify(item).replace(/"/g, '&quot;')})' class="text-xs bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-3 py-2 rounded-lg flex items-center gap-1">
+                        <i data-lucide="check" class="w-3 h-3"></i> 조치 완료 (담임 연동)
+                      </button>
+                    ` : ''}
+                    <button onclick="updateReceptionStatus('${item.id}', 'delete')" class="text-xs bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold p-2 rounded-lg" title="기록 지우기">
+                      <i data-lucide="trash-2" class="w-4 h-4"></i>
+                    </button>
+                  </div>
+                </div>
+
+                <div class="flex flex-wrap gap-1.5">
+                  ${item.symptoms.map(s => `<span class="bg-slate-100 text-slate-700 text-xs px-2.5 py-1 rounded-lg border border-slate-200">${s}</span>`).join('')}
+                </div>
+
+                ${healthAlert ? `
+                  <div class="bg-rose-50 border border-rose-100 p-3 rounded-xl text-xs text-rose-800 flex items-start gap-2">
+                    <i data-lucide="alert-triangle" class="w-4 h-4 text-rose-600 shrink-0 mt-0.5"></i>
+                    <div>
+                      <strong class="font-bold">보건대장 등록 건강 유의사항:</strong> ${healthAlert}
+                    </div>
+                  </div>
+                ` : ''}
+
+                ${item.detail ? `
+                  <div class="bg-slate-50 p-3 rounded-xl border border-slate-100/80 text-sm text-slate-600">
+                    <span class="font-bold text-slate-800 text-xs block mb-1">학생 진술 및 작성 내용:</span>
+                    ${item.detail}
+                  </div>
+                ` : ''}
+              </div>
+            `;
+          }).join('');
+        }
+      }
+
+      const nurseProfileTable = document.getElementById('nurse-profile-table-body');
+      if (nurseProfileTable) {
+        if (localData.studentProfiles.length === 0) {
+          nurseProfileTable.innerHTML = `
+            <tr>
+              <td colspan="5" class="px-4 py-4 text-center text-slate-400">등록된 유의학생 정보가 없습니다.</td>
+            </tr>
+          `;
+        } else {
+          nurseProfileTable.innerHTML = localData.studentProfiles.map(p => `
+            <tr class="hover:bg-slate-50/50">
+              <td class="px-4 py-2 text-slate-600 font-medium">${p.grade}-${p.class}-${p.number}</td>
+              <td class="px-4 py-2 font-bold text-slate-900">${p.name}</td>
+              <td class="px-4 py-2 text-rose-700 font-semibold">${p.notes}</td>
+              <td class="px-4 py-2 text-center text-amber-500 font-black">${p.isFavorite ? '★ 자주 방문' : '일반'}</td>
+              <td class="px-4 py-2 text-center">
+                <button onclick="deleteStudentProfile('${p.id}')" class="text-slate-400 hover:text-red-500">
+                  <i data-lucide="trash" class="w-3.5 h-3.5 mx-auto"></i>
+                </button>
+              </td>
+            </tr>
+          `).join('');
+        }
+      }
+
+      const nurseAbsentContainer = document.getElementById('nurse-absent-list');
+      if (nurseAbsentContainer) {
+        if (localData.absents.length === 0) {
+          nurseAbsentContainer.innerHTML = `<p class="text-center text-slate-400 py-6 text-sm">확인되지 않은 부재중 쪽지가 없습니다.</p>`;
+        } else {
+          nurseAbsentContainer.innerHTML = localData.absents.map(item => `
+            <div class="bg-indigo-50/50 border border-indigo-100 rounded-2xl p-4 space-y-2 relative">
+              <div class="flex justify-between items-start">
+                <span class="font-bold text-indigo-950 text-sm">${item.student}</span>
+                <button onclick="resolveAbsent('${item.id}')" class="text-indigo-400 hover:text-indigo-800">
+                  <i data-lucide="x-circle" class="w-4 h-4"></i>
+                </button>
+              </div>
+              <p class="text-xs text-indigo-900 font-medium">${item.message}</p>
+              <p class="text-[9px] text-indigo-400">${formatTime(item.timestamp)}</p>
+            </div>
+          `).join('');
+        }
+      }
+
+      const teacherFeedContainer = document.getElementById('teacher-feed-container');
+      if (teacherFeedContainer) {
+        const myClassFeed = localData.alerts.filter(item => String(item.grade) === String(appState.teacherGrade) && String(item.class) === String(appState.teacherClass));
+
+        const myVisitToday = localData.receptions.filter(r => String(r.grade) === String(appState.teacherGrade) && String(r.class) === String(appState.teacherClass)).length;
+        const teacherClassVisitCount = document.getElementById('teacher-class-visit-count');
+        if (teacherClassVisitCount) {
+          teacherClassVisitCount.innerText = myVisitToday;
+        }
+
+        if (myClassFeed.length === 0) {
+          teacherFeedContainer.innerHTML = `
+            <div class="text-center py-16 text-slate-400">
+              <i data-lucide="message-square-off" class="w-12 h-12 mx-auto stroke-1 text-slate-300 mb-2"></i>
+              <p class="font-semibold text-sm">해당 학급과 동기화된 새로운 보건실 알림 정보가 없습니다.</p>
+            </div>
+          `;
+        } else {
+          teacherFeedContainer.innerHTML = myClassFeed.map(item => {
+            const isDocRequest = item.action.includes('[담임 요청]');
+            const isCared = item.action.includes('[치료완료]');
+            
+            const matchedProfile = localData.studentProfiles.find(p => 
+              String(p.grade) === String(appState.teacherGrade) && 
+              String(p.class) === String(appState.teacherClass) && 
+              String(p.name) === String(item.student)
+            );
+            
+            const hasNotes = matchedProfile?.notes || '';
+
+            let themeBg = 'bg-slate-50 border-slate-100';
+            let themeBadge = '<span class="bg-slate-100 text-slate-700 text-xs px-2 py-0.5 rounded-full font-bold">전반 알람</span>';
+            
+            if (isDocRequest) {
+              themeBg = 'bg-blue-50/50 border-blue-100';
+              themeBadge = '<span class="bg-blue-100 text-blue-800 text-xs px-2.5 py-1 rounded-full font-bold">전달사항 요청됨</span>';
+            } else if (isCared) {
+              themeBg = 'bg-emerald-50/50 border-emerald-100';
+              themeBadge = '<span class="bg-emerald-100 text-emerald-800 text-xs px-2.5 py-1 rounded-full font-bold">처치 최종 복귀</span>';
+            }
+
+            return `
+              <div class="border p-4 rounded-2xl ${themeBg} space-y-2">
+                <div class="flex justify-between items-center">
+                  <div class="flex items-center gap-2">
+                    <span class="font-extrabold text-slate-900">${item.student} 학생</span>
+                    ${themeBadge}
+                  </div>
+                  <span class="text-[10px] text-slate-400">${formatTime(item.timestamp)}</span>
+                </div>
+                <p class="text-sm text-slate-700 font-medium leading-relaxed">${item.action}</p>
+                
+                ${hasNotes ? `
+                  <div class="bg-rose-50 border border-rose-100 p-2.5 rounded-xl text-xs text-rose-800 mt-2 flex items-start gap-1.5">
+                    <i data-lucide="alert-triangle" class="w-3.5 h-3.5 text-rose-600 shrink-0 mt-0.5"></i>
+                    <div>
+                      <strong class="font-bold">이 학생의 건강 특이사항:</strong> ${hasNotes} (체크 요망)
+                    </div>
+                  </div>
+                ` : ''}
+              </div>
+            `;
+          }).join('');
+        }
+      }
+
+      lucide.createIcons();
+    }
+
+    // ----------------------------------------------------
+    // 11. 헬퍼 유틸리티 함수
+    // ----------------------------------------------------
+    function formatTime(date) {
+      if (!date) return '';
+      const hrs = String(date.getHours()).padStart(2, '0');
+      const mins = String(date.getMinutes()).padStart(2, '0');
+      return `${hrs}:${mins}`;
+    }
+
+    function updateStatusBanner(text, type) {
+      const banner = document.getElementById('status-banner');
+      const textElem = document.getElementById('status-text');
+      const dot = document.getElementById('status-dot');
+
+      banner.className = "border-b px-6 py-2 flex items-center justify-between text-xs transition-all ";
+      if (type === 'success') {
+        banner.classList.add('bg-emerald-50', 'border-emerald-200', 'text-emerald-800');
+        dot.className = "w-2 h-2 rounded-full bg-emerald-500 animate-pulse";
+        textElem.innerText = text;
+      } else if (type === 'warning') {
+        banner.classList.add('bg-amber-50', 'border-amber-200', 'text-amber-800');
+        dot.className = "w-2 h-2 rounded-full bg-amber-500 animate-pulse";
+        textElem.innerText = text;
+      }
+    }
+
+    function retryConnection() {
+      updateStatusBanner('서버 재연결 시도 중...', 'warning');
+      initFirebase();
+    }
+
+    function showModal(icon, title, desc, status) {
+      const modal = document.getElementById('alert-modal');
+      const iconContainer = document.getElementById('modal-icon-container');
+      const titleElem = document.getElementById('modal-title');
+      const descElem = document.getElementById('modal-desc');
+
+      titleElem.innerText = title;
+      descElem.innerText = desc;
+
+      iconContainer.className = "w-16 h-16 rounded-full mx-auto flex items-center justify-center ";
+      if (status === 'success') {
+        iconContainer.classList.add('bg-emerald-50', 'text-emerald-500');
+        iconContainer.innerHTML = `<i data-lucide="check-circle" class="w-8 h-8"></i>`;
+      } else {
+        iconContainer.classList.add('bg-red-50', 'text-red-500');
+        iconContainer.innerHTML = `<i data-lucide="alert-circle" class="w-8 h-8"></i>`;
+      }
+
+      lucide.createIcons();
+      modal.classList.remove('opacity-0', 'pointer-events-none');
+      modal.querySelector('div').classList.remove('scale-95');
+    }
+
+    function closeModal() {
+      const modal = document.getElementById('alert-modal');
+      modal.classList.add('opacity-0', 'pointer-events-none');
+      modal.querySelector('div').classList.add('scale-95');
+    }
+
+    // ----------------------------------------------------
+    // 12. 초기 구동 및 마운트
+    // ----------------------------------------------------
+    window.onload = function() {
+      initFirebase();
+      initAllDropdowns();
+      renderSymptomCheckboxes();
+      switchRole('landing');
+    };
+
+  </script>
+</body>
+</html>
