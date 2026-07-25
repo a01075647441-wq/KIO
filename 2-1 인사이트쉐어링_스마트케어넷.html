@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>스마트 보건실 케어넷</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    body { font-family: 'Pretendard', sans-serif; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col antialiased">
+
+  <div id="app" class="flex-grow flex flex-col">
+    <header id="main-header" class="hidden bg-white border-b border-slate-200 px-6 py-4 flex flex-col sm:flex-row justify-between items-center gap-4 sticky top-0 z-40 shadow-sm">
+      <div class="flex items-center gap-3">
+        <div class="bg-emerald-500 text-white p-2.5 rounded-2xl shadow-md">
+          <i data-lucide="heart-pulse" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <h1 class="text-xl font-extrabold text-slate-900">스마트 보건실 케어넷</h1>
+          <p class="text-xs text-slate-500 font-semibold">실시간 학내 보건 의료 연계 인프라</p>
+        </div>
+      </div>
+      <button onclick="logoutRole()" class="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm rounded-xl transition-all">
+        <i data-lucide="log-out" class="w-4 h-4"></i> 처음 화면으로
+      </button>
+    </header>
+
+    <div id="status-banner" class="bg-amber-50 border-b border-amber-200 px-6 py-2.5 flex flex-col sm:flex-row items-center justify-between text-xs text-amber-800 gap-2">
+      <div class="flex items-center gap-2">
+        <span class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse"></span>
+        <span class="font-medium">임시 데모 모드 작동 중 (우측 DB 설정 버튼을 통해 Supabase 정보를 등록해 주세요)</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <button onclick="openConfigModal()" class="underline hover:text-amber-950 font-semibold flex items-center gap-1 text-[11px] bg-amber-100 px-2.5 py-1 rounded-md">
+          <i data-lucide="database" class="w-3.5 h-3.5 text-emerald-600"></i> 실시간 Supabase DB 설정
+        </button>
+      </div>
+    </div>
+
+    <main class="flex-grow p-4 md:p-8 max-w-7xl w-full mx-auto flex flex-col justify-center">
+      <section id="view-landing" class="space-y-12 py-8 max-w-5xl mx-auto w-full">
+        <div class="text-center space-y-4">
+          <div class="flex justify-center">
+            <div class="inline-flex bg-emerald-100 text-emerald-800 p-4 rounded-3xl shadow-inner mb-2 animate-bounce">
+              <i data-lucide="heart-pulse" class="w-12 h-12"></i>
+            </div>
+          </div>
+          <h2 class="text-4xl md:text-5xl font-black text-slate-900">스마트 보건실 케어넷</h2>
+          <p class="text-slate-500 text-base md:text-lg max-w-2xl mx-auto font-medium">
+            학생들의 빠른 치료와 체계적인 학급 관리를 완벽하게 연결하는<br>우리 학교 맞춤형 실시간 스마트 응급/보건 안심 네트워크망입니다.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
+          <button onclick="switchView('kiosk')" class="group text-left bg-white border border-slate-200 rounded-3xl p-6 shadow-md hover:shadow-xl hover:-translate-y-2 transition-all flex flex-col justify-between h-72">
+            <div class="space-y-4">
+              <div class="bg-emerald-500 text-white p-4 rounded-2xl w-14 h-14 flex items-center justify-center shadow-lg">
+                <i data-lucide="tablet" class="w-7 h-7"></i>
+              </div>
+              <div>
+                <h3 class="text-xl font-extrabold text-slate-900">보건실 입구 키오스크</h3>
+                <p class="text-slate-400 text-xs leading-relaxed mt-2 font-medium">보건실에 방문한 학생들이 터치를 통해 간편하게 접수합니다.</p>
+              </div>
+            </div>
+            <div class="flex items-center text-emerald-600 font-extrabold text-sm gap-1">
+              접수 창구 가동 <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            </div>
+          </button>
+
+          <button onclick="switchView('nurse')" class="group text-left bg-white border border-slate-200 rounded-3xl p-6 shadow-md hover:shadow-xl hover:-translate-y-2 transition-all flex flex-col justify-between h-72">
+            <div class="space-y-4">
+              <div class="bg-indigo-600 text-white p-4 rounded-2xl w-14 h-14 flex items-center justify-center shadow-lg">
+                <i data-lucide="user-cog" class="w-7 h-7"></i>
+              </div>
+              <div>
+                <h3 class="text-xl font-extrabold text-slate-900">보건교사 대시보드</h3>
+                <p class="text-slate-400 text-xs leading-relaxed mt-2 font-medium">실시간 대기 현황을 처리하고 상시 특이사항을 관리합니다.</p>
+              </div>
+            </div>
+            <div class="flex items-center text-indigo-600 font-extrabold text-sm gap-1">
+              통합 관리 진입 <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            </div>
+          </button>
+
+          <button onclick="switchView('teacher')" class="group text-left bg-white border border-slate-200 rounded-3xl p-6 shadow-md hover:shadow-xl hover:-translate-y-2 transition-all flex flex-col justify-between h-72">
+            <div class="space-y-4">
+              <div class="bg-violet-600 text-white p-4 rounded-2xl w-14 h-14 flex items-center justify-center shadow-lg">
+                <i data-lucide="graduation-cap" class="w-7 h-7"></i>
+              </div>
+              <div>
+                <h3 class="text-xl font-extrabold text-slate-900">담임 교사용 안심망</h3>
+                <p class="text-slate-400 text-xs leading-relaxed mt-2 font-medium">우리 반 아이들의 보건실 처치 피드를 실시간 확인합니다.</p>
+              </div>
+            </div>
+            <div class="flex items-center text-violet-600 font-extrabold text-sm gap-1">
+              우리 반 안심보드 <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            </div>
+          </button>
+        </div>
+      </section>
+
+      <section id="view-kiosk" class="hidden space-y-6">
+        <div class="text-center py-4">
+          <h2 class="text-3xl font-extrabold text-slate-900">보건실에 오신 것을 환영합니다!</h2>
+          <p class="text-slate-500 mt-2 font-medium">신속하고 안전한 치료를 위해 방문 정보와 진료 용무를 입력해주세요.</p>
+        </div>
+      </section>
+
+      <section id="view-nurse" class="hidden space-y-6">
+        <h2 class="text-2xl font-black text-slate-900">보건교사 대시보드</h2>
+      </section>
+
+      <section id="view-teacher" class="hidden space-y-6">
+        <h2 class="text-2xl font-black text-slate-900">담임 교사용 안심망</h2>
+      </section>
+    </main>
+
+    <div id="db-config-modal" class="fixed inset-0 bg-slate-950/40 backdrop-blur-sm flex items-center justify-center z-50 opacity-0 pointer-events-none transition-opacity">
+      <div class="bg-white rounded-3xl p-6 max-w-md w-full mx-4 shadow-2xl space-y-4">
+        <div class="flex items-center gap-2 border-b pb-3">
+          <i data-lucide="database" class="w-6 h-6 text-emerald-500"></i>
+          <h3 class="text-lg font-extrabold text-slate-900">Supabase DB 설정</h3>
+        </div>
+        <div class="space-y-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">Project URL</label>
+            <input id="supabase-url" type="text" placeholder="https://your-project.supabase.co" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">Anon API Key</label>
+            <input id="supabase-key" type="password" placeholder="Key..." class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-2 pt-2">
+          <button onclick="closeConfigModal()" class="py-2.5 bg-slate-100 text-slate-600 font-bold rounded-xl text-xs">취소</button>
+          <button onclick="closeConfigModal()" class="py-2.5 bg-emerald-600 text-white font-bold rounded-xl text-xs">저장</button>
+        </div>
+      </div>
+    </div>
+
+    <footer class="bg-slate-900 text-slate-400 py-6 px-6 text-center text-xs mt-12 border-t border-slate-800">
+      <p>© 2026 스마트 보건실 케어넷. All rights reserved.</p>
+    </footer>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    // 화면 전환 함수
+    function switchView(viewName) {
+      document.getElementById('view-landing').classList.add('hidden');
+      document.getElementById('view-kiosk').classList.add('hidden');
+      document.getElementById('view-nurse').classList.add('hidden');
+      document.getElementById('view-teacher').classList.add('hidden');
+
+      document.getElementById('main-header').classList.remove('hidden');
+      document.getElementById(`view-${viewName}`).classList.remove('hidden');
+    }
+
+    function logoutRole() {
+      document.getElementById('main-header').classList.add('hidden');
+      document.getElementById('view-kiosk').classList.add('hidden');
+      document.getElementById('view-nurse').classList.add('hidden');
+      document.getElementById('view-teacher').classList.add('hidden');
+      document.getElementById('view-landing').classList.remove('hidden');
+    }
+
+    function openConfigModal() {
+      const modal = document.getElementById('db-config-modal');
+      modal.classList.remove('opacity-0', 'pointer-events-none');
+    }
+
+    function closeConfigModal() {
+      const modal = document.getElementById('db-config-modal');
+      modal.classList.add('opacity-0', 'pointer-events-none');
+    }
+
+    // 아이콘 초기화 (페이지 로드 완료 후 실행)
+    window.addEventListener('DOMContentLoaded', () => {
+      if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+      }
+    });
+  </script>
+</body>
+</html>
